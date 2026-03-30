@@ -1,0 +1,206 @@
+  :root {
+    --bg: #0f0f0f;
+    --bg2: #181818;
+    --bg3: #222222;
+    --bg4: #2a2a2a;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #f0ede8;
+    --text2: #9a9690;
+    --text3: #5a5754;
+    --accent: #c8f080;
+    --accent2: #80c8f0;
+    --danger: #f08080;
+    --warn: #f0c880;
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-mono: 'DM Mono', monospace;
+    --r: 10px;
+    --r2: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font-mono); font-size: 13px; min-height: 100vh; }
+
+  /* ── LAYOUT WRAPPER ── */
+  body { display: flex; flex-direction: column; min-height: 100vh; }
+
+  /* ── TOP NAV (desktop) ── */
+  .top-nav {
+    display: flex; align-items: center; gap: 2px;
+    padding: 0 32px;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; background: var(--bg); z-index: 100;
+    height: 52px;
+  }
+  .top-nav .brand { font-family: var(--font-display); font-size: 15px; color: var(--text); margin-right: 20px; font-weight: 300; font-style: italic; white-space: nowrap; }
+  .top-nav button { background: none; border: none; color: var(--text2); font-family: var(--font-mono); font-size: 12px; padding: 0 14px; height: 52px; cursor: pointer; border-bottom: 2px solid transparent; transition: all .15s; letter-spacing: .03em; white-space: nowrap; }
+  .top-nav button:hover { color: var(--text); }
+  .top-nav button.active { color: var(--accent); border-bottom-color: var(--accent); }
+  #sync-status { margin-left: auto; font-size: 11px; color: var(--text3); white-space: nowrap; padding-left: 16px; }
+
+  /* ── BOTTOM NAV (mobile) ── */
+  .bottom-nav {
+    display: none;
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--bg2); border-top: 1px solid var(--border);
+    z-index: 100; height: 60px;
+    padding: 0 4px;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .bottom-nav button {
+    flex: 1; background: none; border: none; color: var(--text3);
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: .02em;
+    cursor: pointer; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 4px; padding: 8px 4px;
+    transition: color .15s; height: 100%;
+  }
+  .bottom-nav button .nav-icon { font-size: 18px; line-height: 1; }
+  .bottom-nav button.active { color: var(--accent); }
+  .bottom-nav button:hover { color: var(--text); }
+
+  /* ── MAIN CONTENT ── */
+  .app-body { flex: 1; display: flex; justify-content: center; }
+  .pages-wrap { width: 100%; max-width: 780px; padding: 0 32px 40px; }
+
+  /* ── PAGES ── */
+  .page { display: none; padding-top: 28px; }
+  .page.active { display: block; }
+
+  /* ── CARDS ── */
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r2); padding: 20px 24px; margin-bottom: 16px; }
+  .card-sm { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--r); padding: 14px 18px; }
+
+  /* ── GRIDS ── */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+
+  /* ── METRICS ── */
+  .metric { background: var(--bg3); border-radius: var(--r); padding: 16px 18px; }
+  .metric-label { font-size: 10px; color: var(--text3); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 8px; }
+  .metric-value { font-family: var(--font-display); font-size: 24px; font-weight: 300; }
+  .metric-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+  .green { color: var(--accent); }
+  .red { color: var(--danger); }
+  .amber { color: var(--warn); }
+  .blue { color: var(--accent2); }
+
+  /* ── SECTION HEADER ── */
+  .sh { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; }
+  .sh h2 { font-family: var(--font-display); font-size: 18px; font-weight: 300; font-style: italic; }
+  .sh span { font-size: 11px; color: var(--text3); }
+
+  /* ── TABLE ── */
+  .tbl { width: 100%; border-collapse: collapse; }
+  .tbl th { font-size: 10px; color: var(--text3); text-align: left; padding: 6px 10px; letter-spacing: .05em; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+  .tbl td { padding: 10px 10px; border-bottom: 1px solid var(--border); font-size: 12px; vertical-align: middle; }
+  .tbl tr:last-child td { border-bottom: none; }
+  .tbl tr:hover td { background: var(--bg3); }
+
+  /* ── BADGE ── */
+  .badge { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 4px; font-weight: 500; }
+  .badge-green { background: rgba(200,240,128,.15); color: var(--accent); }
+  .badge-red { background: rgba(240,128,128,.15); color: var(--danger); }
+  .badge-amber { background: rgba(240,200,128,.15); color: var(--warn); }
+  .badge-blue { background: rgba(128,200,240,.15); color: var(--accent2); }
+
+  /* ── PROGRESS ── */
+  .prog-wrap { background: var(--bg4); border-radius: 4px; height: 6px; overflow: hidden; margin-top: 8px; }
+  .prog-fill { height: 100%; border-radius: 4px; transition: width .4s; }
+
+  /* ── INPUTS ── */
+  input, select, textarea { background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--r); color: var(--text); font-family: var(--font-mono); font-size: 13px; padding: 10px 12px; width: 100%; outline: none; transition: border .15s; }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  select option { background: var(--bg3); }
+  label { font-size: 11px; color: var(--text2); display: block; margin-bottom: 5px; letter-spacing: .02em; }
+  .field { margin-bottom: 12px; }
+
+  /* ── BUTTONS ── */
+  .btn { background: var(--accent); color: #0f0f0f; border: none; border-radius: var(--r); padding: 10px 20px; font-family: var(--font-mono); font-size: 12px; font-weight: 500; cursor: pointer; transition: opacity .15s; letter-spacing: .02em; white-space: nowrap; }
+  .btn:hover { opacity: .85; }
+  .btn-ghost { background: none; border: 1px solid var(--border2); color: var(--text2); border-radius: var(--r); padding: 8px 14px; font-family: var(--font-mono); font-size: 12px; cursor: pointer; transition: all .15s; }
+  .btn-ghost:hover { border-color: var(--text2); color: var(--text); }
+  .btn-danger { background: none; border: 1px solid rgba(240,128,128,.3); color: var(--danger); border-radius: var(--r); padding: 5px 10px; font-family: var(--font-mono); font-size: 11px; cursor: pointer; }
+  .btn-danger:hover { background: rgba(240,128,128,.1); }
+
+  /* ── DEBT CARD ── */
+  .debt-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r2); padding: 20px 24px; margin-bottom: 14px; }
+  .debt-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+  .debt-name { font-family: var(--font-display); font-size: 18px; font-weight: 300; font-style: italic; }
+  .debt-bank { font-size: 10px; color: var(--text3); margin-top: 2px; }
+  .debt-amount { text-align: right; }
+  .debt-total { font-family: var(--font-display); font-size: 24px; font-weight: 300; }
+  .debt-row { display: flex; justify-content: space-between; font-size: 12px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+  .debt-row:last-child { border-bottom: none; }
+  .debt-row-label { color: var(--text2); }
+
+  /* ── MODAL ── */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 200; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal { background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--r2); padding: 24px; width: 440px; max-width: 95vw; }
+  .modal h3 { font-family: var(--font-display); font-size: 18px; font-weight: 300; font-style: italic; margin-bottom: 18px; }
+
+  /* ── QUICK ADD ── */
+  .quick-add { background: var(--bg2); border: 1px solid var(--accent); border-radius: var(--r2); padding: 18px 20px; margin-bottom: 20px; }
+  .quick-grid { display: grid; grid-template-columns: 2fr 1.2fr 1.5fr 1.2fr auto; gap: 8px; align-items: end; }
+
+  /* ── SAVINGS BAR ── */
+  .savings-track { background: var(--bg4); border-radius: 8px; height: 12px; overflow: hidden; margin: 10px 0; }
+  .savings-fill { height: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent)); border-radius: 8px; transition: width .5s; }
+
+  /* ── MISC ── */
+  .cat-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; flex-shrink: 0; }
+  .row-flex { display: flex; gap: 10px; align-items: center; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+  .tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: var(--bg4); color: var(--text3); }
+
+  /* ── RESPONSIVE: TABLET ── */
+  @media (max-width: 860px) {
+    .pages-wrap { padding: 0 20px 40px; }
+    .grid4 { grid-template-columns: 1fr 1fr; gap: 10px; }
+  }
+
+  /* ── RESPONSIVE: MOBILE ── */
+  @media (max-width: 600px) {
+    .top-nav { display: none; }
+    .bottom-nav { display: flex; }
+    .app-body { padding-bottom: 60px; }
+    .pages-wrap { padding: 0 14px 24px; max-width: 100%; }
+    .page { padding-top: 20px; }
+
+    .grid2 { grid-template-columns: 1fr 1fr; }
+    .grid3 { grid-template-columns: 1fr 1fr; }
+    .grid4 { grid-template-columns: 1fr 1fr; }
+
+    .metric { padding: 12px 14px; }
+    .metric-value { font-size: 18px; }
+    .metric-label { font-size: 9px; }
+
+    .card { padding: 14px 16px; margin-bottom: 12px; }
+    .debt-card { padding: 14px 16px; }
+    .quick-add { padding: 14px 16px; }
+
+    .quick-grid { grid-template-columns: 1fr 1fr; }
+    .quick-grid > *:last-child { grid-column: 1 / -1; }
+    .quick-grid .btn { width: 100%; }
+
+    .debt-header { flex-direction: column; gap: 8px; }
+    .debt-amount { text-align: left; }
+    .debt-total { font-size: 20px; }
+
+    /* Tabla responsive: ocultar columnas menos importantes */
+    .tbl .hide-mobile { display: none; }
+
+    /* Form gastos en mobile: stack en 2 columnas */
+    .gastos-form-grid { grid-template-columns: 1fr 1fr !important; }
+    .gastos-form-row2 { grid-template-columns: 1fr auto !important; }
+
+    .sh h2 { font-size: 16px; }
+    .btn { padding: 10px 14px; font-size: 12px; }
+  }
+
+  /* ── RESPONSIVE: VERY SMALL ── */
+  @media (max-width: 380px) {
+    .grid2, .grid4 { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .metric-value { font-size: 16px; }
+    .pages-wrap { padding: 0 10px 24px; }
+  }

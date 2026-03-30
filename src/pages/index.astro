@@ -1,0 +1,31 @@
+---
+import '../styles/global.css';
+import bodyPartial from '../body-partial.html?raw';
+
+const appConfig = {
+  API_URL:
+    import.meta.env.PUBLIC_API_URL ??
+    'https://script.google.com/macros/s/AKfycbx42K24D_ez7674ufMdXRbgb2lvRanEfXcmZryS3EFHy6Ffz_RELIfrMc2Dws02_ErWVw/exec',
+  CACHE_KEY: import.meta.env.PUBLIC_CACHE_KEY ?? 'finanzas_maicol_cache_v2',
+};
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Finanzas — Maicol</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div style="display: contents" set:html={bodyPartial} />
+    <script is:inline define:vars={{ appConfig }}>
+      window.__APP_CONFIG__ = appConfig;
+    </script>
+    <script src="/app.js" defer></script>
+  </body>
+</html>

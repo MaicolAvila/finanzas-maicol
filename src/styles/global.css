@@ -114,6 +114,7 @@
   .tbl td { padding: 10px 10px; border-bottom: 1px solid var(--border); font-size: 12px; vertical-align: middle; }
   .tbl tr:last-child td { border-bottom: none; }
   .tbl tr:hover td { background: var(--bg3); }
+  .tbl-mobile-cards { table-layout: fixed; }
 
   /* ── BADGE ── */
   .badge { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 4px; font-weight: 500; }
@@ -171,6 +172,9 @@
   .row-flex { display: flex; gap: 10px; align-items: center; }
   .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
   .tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: var(--bg4); color: var(--text3); }
+  .filters-bar { align-items: stretch; }
+  .inline-form-grid { align-items: end; }
+  .stack-mobile { align-items: center; }
 
   /* ── RESPONSIVE: TABLET ── */
   @media (max-width: 860px) {
@@ -182,44 +186,97 @@
   @media (max-width: 600px) {
     .top-nav { display: none; }
     .bottom-nav { display: flex; }
-    .app-body { padding-bottom: 60px; }
-    .pages-wrap { padding: 0 14px 24px; max-width: 100%; }
+    .app-body { padding-bottom: 74px; }
+    .pages-wrap { padding: 0 12px 24px; max-width: 100%; }
     .page { padding-top: 20px; }
 
-    .grid2 { grid-template-columns: 1fr 1fr; }
-    .grid3 { grid-template-columns: 1fr 1fr; }
+    .grid2 { grid-template-columns: 1fr; }
+    .grid3 { grid-template-columns: 1fr; }
     .grid4 { grid-template-columns: 1fr 1fr; }
 
-    .metric { padding: 12px 14px; }
-    .metric-value { font-size: 18px; }
+    .metric { padding: 14px; }
+    .metric-value { font-size: 17px; line-height: 1.1; }
     .metric-label { font-size: 9px; }
+    .metric-sub { font-size: 10px; }
 
-    .card { padding: 14px 16px; margin-bottom: 12px; }
-    .debt-card { padding: 14px 16px; }
-    .quick-add { padding: 14px 16px; }
+    .card { padding: 14px; margin-bottom: 12px; border-radius: 14px; }
+    .debt-card { padding: 14px; border-radius: 14px; }
+    .quick-add { padding: 14px; border-radius: 14px; }
+    .card-sm { padding: 14px; }
 
-    .quick-grid { grid-template-columns: 1fr 1fr; }
+    .quick-grid { grid-template-columns: 1fr; }
     .quick-grid > *:last-child { grid-column: 1 / -1; }
     .quick-grid .btn { width: 100%; }
+    .gastos-form-grid,
+    .gastos-form-row2,
+    .inline-form-grid { grid-template-columns: 1fr !important; }
+    .filters-bar { display: grid !important; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .filters-bar > * { width: 100% !important; min-width: 0; }
+    .filters-bar .btn-ghost { min-height: 42px; }
+    .stack-mobile,
+    .ahorro-header { flex-direction: column; align-items: stretch !important; }
+    .ahorro-header > div:last-child { width: 100%; text-align: left !important; }
+    .ahorro-header #meta-viaje { width: 100% !important; text-align: left !important; }
 
     .debt-header { flex-direction: column; gap: 8px; }
     .debt-amount { text-align: left; }
     .debt-total { font-size: 20px; }
-
-    /* Tabla responsive: ocultar columnas menos importantes */
-    .tbl .hide-mobile { display: none; }
-
-    /* Form gastos en mobile: stack en 2 columnas */
-    .gastos-form-grid { grid-template-columns: 1fr 1fr !important; }
-    .gastos-form-row2 { grid-template-columns: 1fr auto !important; }
+    .debt-row { gap: 12px; align-items: flex-start; }
+    .debt-row span:last-child { text-align: right; }
 
     .sh h2 { font-size: 16px; }
-    .btn { padding: 10px 14px; font-size: 12px; }
+    .sh { gap: 8px; align-items: flex-start; }
+    .sh span { font-size: 10px; }
+    .btn, .btn-danger, .btn-ghost { min-height: 42px; }
+    .btn { padding: 10px 14px; font-size: 12px; justify-content: center; }
+    input, select, textarea { min-height: 42px; }
+
+    .tbl-mobile-cards thead { display: none; }
+    .tbl-mobile-cards tbody,
+    .tbl-mobile-cards tr,
+    .tbl-mobile-cards td { display: block; width: 100%; }
+    .tbl-mobile-cards tr {
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .tbl-mobile-cards tr:last-child { border-bottom: none; }
+    .tbl-mobile-cards td {
+      border-bottom: none;
+      padding: 0;
+      margin-bottom: 8px;
+      background: transparent !important;
+    }
+    .tbl-mobile-cards td:last-child { margin-bottom: 0; }
+    .tbl-mobile-cards td::before {
+      content: attr(data-label);
+      display: block;
+      margin-bottom: 4px;
+      font-size: 10px;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      color: var(--text3);
+    }
+    .tbl-mobile-cards td[data-label="Acción"] {
+      display: flex;
+      justify-content: flex-end;
+    }
+    .tbl-mobile-cards td[data-label="Acción"]::before { display: none; }
+    .tbl-mobile-cards td[data-label="Monto"],
+    .tbl-mobile-cards td[data-label="Total"],
+    .tbl-mobile-cards td[data-label="Maicol"],
+    .tbl-mobile-cards td[data-label="Kata"],
+    .tbl-mobile-cards td[data-label="Acumulado"] {
+      text-align: left !important;
+    }
+    .tbl-mobile-cards.tbl-compact-mobile tr { padding: 10px 0; }
+    .tbl-mobile-cards.tbl-compact-mobile td { margin-bottom: 6px; }
+    .tbl-mobile-cards .btn-danger { min-width: 42px; }
   }
 
   /* ── RESPONSIVE: VERY SMALL ── */
   @media (max-width: 380px) {
-    .grid2, .grid4 { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .grid4 { grid-template-columns: 1fr; gap: 8px; }
     .metric-value { font-size: 16px; }
-    .pages-wrap { padding: 0 10px 24px; }
+    .pages-wrap { padding: 0 10px 20px; }
+    .filters-bar { grid-template-columns: 1fr; }
   }

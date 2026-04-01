@@ -18,12 +18,12 @@
 
   <div class="card">
     <div class="sh"><h2>Gastos fijos compartidos</h2><span id="total-pareja-label">Total: $0</span></div>
-    <table class="tbl">
+    <table class="tbl tbl-mobile-cards">
       <thead><tr><th>Gasto</th><th>Total</th><th>Maicol (80%)</th><th>Kata (20%)</th><th></th></tr></thead>
       <tbody id="pareja-tbody"></tbody>
     </table>
     <hr class="divider">
-    <div style="display:grid;grid-template-columns:2fr 1.5fr auto;gap:8px;margin-top:4px;">
+    <div class="inline-form-grid" style="display:grid;grid-template-columns:2fr 1.5fr auto;gap:8px;margin-top:4px;">
       <div class="field" style="margin:0"><label>Gasto</label><input type="text" id="p-gasto" placeholder="ej: Mercado"></div>
       <div class="field" style="margin:0"><label>Valor total ($)</label><input type="number" id="p-valor" placeholder="0"></div>
       <div style="padding-top:18px;"><button class="btn" onclick="addGastoPareja()">+</button></div>
@@ -33,12 +33,12 @@
   <!-- Presupuesto Kata -->
   <div class="card">
     <div class="sh"><h2>Presupuesto Kata</h2><span>$2.600.000/mes</span></div>
-    <table class="tbl">
+    <table class="tbl tbl-mobile-cards">
       <thead><tr><th>Gasto</th><th>Monto</th><th></th></tr></thead>
       <tbody id="kata-tbody"></tbody>
     </table>
     <hr class="divider">
-    <div style="display:grid;grid-template-columns:2fr 1.5fr auto;gap:8px;">
+    <div class="inline-form-grid" style="display:grid;grid-template-columns:2fr 1.5fr auto;gap:8px;">
       <div class="field" style="margin:0"><label>Gasto de Kata</label><input type="text" id="k-gasto" placeholder="ej: transporte"></div>
       <div class="field" style="margin:0"><label>Monto ($)</label><input type="number" id="k-valor" placeholder="0"></div>
       <div style="padding-top:18px;"><button class="btn" onclick="addGastoKata()">+</button></div>

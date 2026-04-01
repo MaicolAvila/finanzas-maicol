@@ -40,7 +40,7 @@
   </div>
 
   <!-- Filtros -->
-  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+  <div class="filters-bar" style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
     <select id="filtro-mes" style="width:auto;" onchange="renderGastos()">
       <option value="all">Todos los meses</option>
     </select>
@@ -59,7 +59,7 @@
   </div>
 
   <div class="card">
-    <table class="tbl" id="gastos-table">
+    <table class="tbl tbl-mobile-cards" id="gastos-table">
       <thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th class="hide-mobile">Método</th><th class="hide-mobile">Nota</th><th style="text-align:right">Monto</th><th></th></tr></thead>
       <tbody id="gastos-body"></tbody>
     </table>

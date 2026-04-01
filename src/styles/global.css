@@ -128,11 +128,12 @@
   .prog-fill { height: 100%; border-radius: 4px; transition: width .4s; }
 
   /* ── INPUTS ── */
-  input, select, textarea { background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--r); color: var(--text); font-family: var(--font-mono); font-size: 13px; padding: 10px 12px; width: 100%; outline: none; transition: border .15s; }
+  input, select, textarea { background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--r); color: var(--text); font-family: var(--font-mono); font-size: 13px; padding: 10px 12px; width: 100%; max-width: 100%; min-width: 0; outline: none; transition: border .15s; }
   input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  input[type="date"] { -webkit-appearance: none; appearance: none; display: block; }
   select option { background: var(--bg3); }
   label { font-size: 11px; color: var(--text2); display: block; margin-bottom: 5px; letter-spacing: .02em; }
-  .field { margin-bottom: 12px; }
+  .field { margin-bottom: 12px; min-width: 0; }
 
   /* ── BUTTONS ── */
   .btn { background: var(--accent); color: #0f0f0f; border: none; border-radius: var(--r); padding: 10px 20px; font-family: var(--font-mono); font-size: 12px; font-weight: 500; cursor: pointer; transition: opacity .15s; letter-spacing: .02em; white-space: nowrap; }
@@ -199,10 +200,10 @@
     .metric-label { font-size: 9px; }
     .metric-sub { font-size: 10px; }
 
-    .card { padding: 14px; margin-bottom: 12px; border-radius: 14px; }
-    .debt-card { padding: 14px; border-radius: 14px; }
-    .quick-add { padding: 14px; border-radius: 14px; }
-    .card-sm { padding: 14px; }
+    .card { padding: 12px; margin-bottom: 10px; border-radius: 14px; }
+    .debt-card { padding: 12px; border-radius: 14px; }
+    .quick-add { padding: 12px; border-radius: 14px; }
+    .card-sm { padding: 12px; }
 
     .quick-grid { grid-template-columns: 1fr; }
     .quick-grid > *:last-child { grid-column: 1 / -1; }
@@ -229,38 +230,57 @@
     .sh span { font-size: 10px; }
     .btn, .btn-danger, .btn-ghost { min-height: 42px; }
     .btn { padding: 10px 14px; font-size: 12px; justify-content: center; }
-    input, select, textarea { min-height: 42px; }
+    input, select, textarea { min-height: 42px; font-size: 16px; }
+    input[type="date"] { width: 100%; max-width: 100%; min-width: 0; }
 
     .tbl-mobile-cards thead { display: none; }
     .tbl-mobile-cards tbody,
     .tbl-mobile-cards tr,
     .tbl-mobile-cards td { display: block; width: 100%; }
     .tbl-mobile-cards tr {
-      padding: 12px 0;
+      position: relative;
+      padding: 10px 0;
       border-bottom: 1px solid var(--border);
     }
     .tbl-mobile-cards tr:last-child { border-bottom: none; }
     .tbl-mobile-cards td {
       border-bottom: none;
       padding: 0;
-      margin-bottom: 8px;
+      margin-bottom: 4px;
       background: transparent !important;
     }
     .tbl-mobile-cards td:last-child { margin-bottom: 0; }
     .tbl-mobile-cards td::before {
       content: attr(data-label);
-      display: block;
-      margin-bottom: 4px;
+      display: inline-block;
+      width: 74px;
+      margin-right: 8px;
       font-size: 10px;
       letter-spacing: .05em;
       text-transform: uppercase;
       color: var(--text3);
+      vertical-align: top;
+    }
+    .tbl-mobile-cards td:not([data-label="Acción"]) {
+      display: grid;
+      grid-template-columns: 74px minmax(0, 1fr);
+      gap: 8px;
+      align-items: start;
     }
     .tbl-mobile-cards td[data-label="Acción"] {
       display: flex;
       justify-content: flex-end;
+      position: absolute;
+      top: 10px;
+      right: 0;
+      width: auto;
+      margin: 0;
     }
     .tbl-mobile-cards td[data-label="Acción"]::before { display: none; }
+    .tbl-mobile-cards td[data-label="Gasto"],
+    .tbl-mobile-cards td[data-label="Descripción"] {
+      padding-right: 52px;
+    }
     .tbl-mobile-cards td[data-label="Monto"],
     .tbl-mobile-cards td[data-label="Total"],
     .tbl-mobile-cards td[data-label="Maicol"],
@@ -268,9 +288,9 @@
     .tbl-mobile-cards td[data-label="Acumulado"] {
       text-align: left !important;
     }
-    .tbl-mobile-cards.tbl-compact-mobile tr { padding: 10px 0; }
-    .tbl-mobile-cards.tbl-compact-mobile td { margin-bottom: 6px; }
-    .tbl-mobile-cards .btn-danger { min-width: 42px; }
+    .tbl-mobile-cards.tbl-compact-mobile td::before { width: 66px; }
+    .tbl-mobile-cards.tbl-compact-mobile td:not([data-label="Acción"]) { grid-template-columns: 66px minmax(0, 1fr); }
+    .tbl-mobile-cards .btn-danger { min-width: 38px; min-height: 38px; padding: 0 10px; }
   }
 
   /* ── RESPONSIVE: VERY SMALL ── */

@@ -2,33 +2,19 @@
 const runtimeConfig = window.__APP_CONFIG__ || {};
 const API_URL = runtimeConfig.API_URL || 'https://script.google.com/macros/s/AKfycbx42K24D_ez7674ufMdXRbgb2lvRanEfXcmZryS3EFHy6Ffz_RELIfrMc2Dws02_ErWVw/exec';
 const CACHE_KEY = runtimeConfig.CACHE_KEY || 'finanzas_maicol_cache_v2';
+const REQUEST_TIMEOUT_MS = 12000;
+const PULL_TO_REFRESH_THRESHOLD = 72;
 
 // ── STATE ──
 function getDefaultState() {
   return {
     gastos: [],
     deudas: {
-      rappi: { saldoInicial: 1963652, saldoActual: 1963652, pagos: [] },
-      fin:   { saldoInicial: 11529267, saldoActual: 11529267, pagos: [] }
+      rappi: { saldoInicial: 1963652, saldoActual: 0, pagos: [] },
+      fin:   { saldoInicial: 11529267, saldoActual: 0, pagos: [] }
     },
     pareja: {
-      items: [
-        { id:1,  nombre:'Cuota apartamento',     valor: 0 },
-        { id:2,  nombre:'Mercado',               valor: 800000 },
-        { id:3,  nombre:'Agua',                  valor: 57090 },
-        { id:4,  nombre:'Luz',                   valor: 120000 },
-        { id:5,  nombre:'Gas',                   valor: 30000 },
-        { id:6,  nombre:'Internet',              valor: 77000 },
-        { id:7,  nombre:'Parqueadero',           valor: 200000 },
-        { id:8,  nombre:'Arriendo',              valor: 1300000 },
-        { id:9,  nombre:'Comidas',               valor: 250000 },
-        { id:10, nombre:'Salidas',               valor: 250000 },
-        { id:11, nombre:'Gasolina',              valor: 90000 },
-        { id:12, nombre:'Tarjetas (curechlos)',  valor: 1466667 },
-        { id:13, nombre:'Seguro gatos',          valor: 39500 },
-        { id:14, nombre:'Aseo',                  valor: 120000 },
-        { id:15, nombre:'Gym',                   valor: 220000 },
-      ],
+      items: [],
       kata: []
     },
     ahorro: { meta: 1200000, depositos: [] }
@@ -44,7 +30,13 @@ function saveCache() {
 function loadCache() {
   try {
     const raw = localStorage.getItem(CACHE_KEY);
-    if (raw) { state = JSON.parse(raw); return true; }
+    if (raw) {
+      state = {
+        ...getDefaultState(),
+        ...JSON.parse(raw)
+      };
+      return true;
+    }
   } catch(e) {}
   return false;
 }
@@ -58,6 +50,7 @@ function setSyncStatus(status) {
     ok:      { text: '✓ guardado en Sheets', color: 'var(--accent)' },
     error:   { text: '✗ sin conexión (guardado local)', color: 'var(--warn)' },
     saving:  { text: '↑ guardando...', color: 'var(--accent2)' },
+    refresh: { text: '⟳ actualizando...', color: 'var(--accent2)' },
   };
   const s = map[status] || map.ok;
   el.textContent = s.text;
@@ -65,15 +58,44 @@ function setSyncStatus(status) {
 }
 
 // ── API CALLS ──
+function normalizeDateValue(value) {
+  if (!value) return '';
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+
+  const dt = new Date(value);
+  if (Number.isNaN(dt.getTime())) return '';
+  return dt.toISOString().slice(0, 10);
+}
+
+async function fetchJson(url, options = {}) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  try {
+    const resp = await fetch(url, {
+      cache: 'no-store',
+      ...options,
+      signal: controller.signal
+    });
+
+    if (!resp.ok) {
+      throw new Error(`HTTP ${resp.status}`);
+    }
+
+    return await resp.json();
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 async function apiCall(payload) {
   setSyncStatus('saving');
   try {
-    const resp = await fetch(API_URL, {
+    const data = await fetchJson(API_URL, {
       method: 'POST',
       body: JSON.stringify(payload),
       headers: { 'Content-Type': 'text/plain' }
     });
-    const data = await resp.json();
     setSyncStatus('ok');
     return data;
   } catch(e) {
@@ -82,42 +104,68 @@ async function apiCall(payload) {
   }
 }
 
-async function loadFromSheets() {
-  setSyncStatus('loading');
+function hydrateStateFromSheets(data) {
+  const nextState = getDefaultState();
+  nextState.ahorro.meta = state.ahorro.meta || nextState.ahorro.meta;
+  nextState.pareja.kata = Array.isArray(state.pareja?.kata) ? state.pareja.kata : [];
+
+  nextState.gastos = (data.gastos || []).map((g) => ({
+    ...g,
+    fecha: normalizeDateValue(g.fecha),
+    monto: parseFloat(g.monto) || 0
+  })).sort((a, b) => b.fecha.localeCompare(a.fecha));
+
+  nextState.deudas.rappi.saldoActual = parseFloat(data.deudas?.rappi?.saldoActual) || 0;
+  nextState.deudas.fin.saldoActual = parseFloat(data.deudas?.fin?.saldoActual) || 0;
+
+  const pagosDeuda = data.pagosDeuda || [];
+  nextState.deudas.rappi.pagos = pagosDeuda
+    .filter((p) => p.tarjeta === 'rappi')
+    .map((p) => ({ fecha: normalizeDateValue(p.fecha), monto: parseFloat(p.monto) || 0 }));
+  nextState.deudas.fin.pagos = pagosDeuda
+    .filter((p) => p.tarjeta === 'fin')
+    .map((p) => ({ fecha: normalizeDateValue(p.fecha), monto: parseFloat(p.monto) || 0 }));
+
+  nextState.ahorro.depositos = (data.ahorro || []).map((d) => ({
+    ...d,
+    fecha: normalizeDateValue(d.fecha),
+    monto: parseFloat(d.monto) || 0
+  }));
+
+  nextState.pareja.items = (data.pareja || []).map((p) => ({
+    ...p,
+    valor: parseFloat(p.valor) || 0
+  }));
+
+  state = nextState;
+}
+
+function refreshUI() {
+  renderDashboard();
+  renderGastos();
+  renderDeudas();
+  renderPareja();
+  renderAhorro();
+}
+
+async function loadFromSheets(status = 'loading') {
+  setSyncStatus(status);
   try {
-    const resp = await fetch(API_URL + '?action=loadAll');
-    const data = await resp.json();
+    const url = new URL(API_URL);
+    url.searchParams.set('action', 'loadAll');
+    url.searchParams.set('_ts', String(Date.now()));
+
+    const data = await fetchJson(url.toString());
     if (data.error) throw new Error(data.error);
-
-    // Gastos
-    state.gastos = (data.gastos || []).map(g => ({
-      ...g, monto: parseFloat(g.monto) || 0
-    })).sort((a,b) => b.fecha.localeCompare(a.fecha));
-
-    // Deudas
-    if (data.deudas) {
-      state.deudas.rappi.saldoActual = parseFloat(data.deudas.rappi?.saldoActual) || 1963652;
-      state.deudas.fin.saldoActual   = parseFloat(data.deudas.fin?.saldoActual)   || 11529267;
-    }
-
-    // Pagos deuda
-    const pagosDeuda = data.pagosDeuda || [];
-    state.deudas.rappi.pagos = pagosDeuda.filter(p => p.tarjeta === 'rappi').map(p => ({ fecha: p.fecha, monto: parseFloat(p.monto)||0 }));
-    state.deudas.fin.pagos   = pagosDeuda.filter(p => p.tarjeta === 'fin').map(p => ({ fecha: p.fecha, monto: parseFloat(p.monto)||0 }));
-
-    // Ahorro
-    state.ahorro.depositos = (data.ahorro || []).map(d => ({ ...d, monto: parseFloat(d.monto)||0 }));
-
-    // Pareja
-    if (data.pareja && data.pareja.length > 0) {
-      state.pareja.items = data.pareja.map(p => ({ ...p, valor: parseFloat(p.valor)||0 }));
-    }
-
+    hydrateStateFromSheets(data);
     saveCache();
+    refreshUI();
     setSyncStatus('ok');
+    return true;
   } catch(e) {
     setSyncStatus('error');
-    loadCache();
+    if (loadCache()) refreshUI();
+    return false;
   }
 }
 
@@ -132,7 +180,8 @@ function fmt(n) {
 }
 function fmtDate(d) {
   if (!d) return '';
-  const dt = new Date(d + 'T12:00:00');
+  const normalized = normalizeDateValue(d);
+  const dt = new Date(`${normalized}T12:00:00`);
   return dt.toLocaleDateString('es-CO', { day:'2-digit', month:'short', year:'numeric' });
 }
 function todayStr() {
@@ -167,20 +216,69 @@ const catColors = {
 
 // ── NAV ──
 function showPage(id, btn) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.top-nav button, .bottom-nav button').forEach(b => b.classList.remove('active'));
-  document.getElementById('page-'+id).classList.add('active');
-  // Activar todos los botones con el mismo destino (top + bottom nav)
-  document.querySelectorAll('.top-nav button, .bottom-nav button').forEach(b => {
-    if (b.getAttribute('onclick') && b.getAttribute('onclick').includes("'"+id+"'")) {
-      b.classList.add('active');
+  const routes = {
+    dashboard: '/',
+    gastos: '/gastos/',
+    deudas: '/deudas/',
+    pareja: '/pareja/',
+    ahorro: '/ahorro/'
+  };
+  const target = routes[id];
+  if (target) window.location.href = target;
+}
+
+async function manualRefresh() {
+  await loadFromSheets('refresh');
+}
+
+function setPullIndicator(distance = 0, isReady = false) {
+  const el = document.getElementById('pull-indicator');
+  if (!el) return;
+
+  const visibleDistance = Math.max(0, Math.min(distance, 96));
+  el.style.opacity = visibleDistance > 0 ? '1' : '0';
+  el.style.transform = `translate(-50%, ${visibleDistance - 90}px)`;
+  el.textContent = isReady ? 'Suelta para actualizar' : 'Desliza para actualizar';
+}
+
+function setupPullToRefresh() {
+  let startY = 0;
+  let pullDistance = 0;
+  let isPulling = false;
+
+  window.addEventListener('touchstart', (event) => {
+    if (window.scrollY > 0 || event.touches.length !== 1) return;
+    startY = event.touches[0].clientY;
+    pullDistance = 0;
+    isPulling = true;
+  }, { passive: true });
+
+  window.addEventListener('touchmove', (event) => {
+    if (!isPulling) return;
+
+    const deltaY = event.touches[0].clientY - startY;
+    if (deltaY <= 0) {
+      setPullIndicator(0, false);
+      return;
     }
-  });
-  if (id === 'dashboard') renderDashboard();
-  if (id === 'gastos') renderGastos();
-  if (id === 'deudas') renderDeudas();
-  if (id === 'pareja') renderPareja();
-  if (id === 'ahorro') renderAhorro();
+
+    pullDistance = Math.min(96, deltaY * 0.45);
+    setPullIndicator(pullDistance, pullDistance >= PULL_TO_REFRESH_THRESHOLD);
+    if (pullDistance > 8) event.preventDefault();
+  }, { passive: false });
+
+  window.addEventListener('touchend', async () => {
+    if (!isPulling) return;
+
+    const shouldRefresh = pullDistance >= PULL_TO_REFRESH_THRESHOLD;
+    isPulling = false;
+    pullDistance = 0;
+    setPullIndicator(0, false);
+
+    if (shouldRefresh) {
+      await manualRefresh();
+    }
+  }, { passive: true });
 }
 
 // ── GASTOS ──
@@ -226,13 +324,18 @@ async function deleteGasto(id) {
 }
 
 function renderGastos() {
-  const mesFilter = document.getElementById('filtro-mes').value;
-  const catFilter = document.getElementById('filtro-cat').value;
-  const metodoFilter = document.getElementById('filtro-metodo').value;
+  const mesSelect = document.getElementById('filtro-mes');
+  const catSelect = document.getElementById('filtro-cat');
+  const metodoSelect = document.getElementById('filtro-metodo');
+  const tbody = document.getElementById('gastos-body');
+  if (!mesSelect || !catSelect || !metodoSelect || !tbody) return;
+
+  const mesFilter = mesSelect.value;
+  const catFilter = catSelect.value;
+  const metodoFilter = metodoSelect.value;
 
   // populate mes filter
   const meses = [...new Set(state.gastos.map(g => mesKey(g.fecha)))].sort().reverse();
-  const mesSelect = document.getElementById('filtro-mes');
   const currentMes = mesSelect.value;
   mesSelect.innerHTML = '<option value="all">Todos los meses</option>' + meses.map(m => `<option value="${m}" ${m === currentMes ? 'selected':''}>${mesLabel(m)}</option>`).join('');
 
@@ -241,7 +344,6 @@ function renderGastos() {
   if (catFilter !== 'all') filtered = filtered.filter(g => g.cat === catFilter);
   if (metodoFilter !== 'all') filtered = filtered.filter(g => g.metodo === metodoFilter);
 
-  const tbody = document.getElementById('gastos-body');
   if (filtered.length === 0) {
     tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:24px;">No hay gastos registrados</td></tr>';
   } else {
@@ -273,11 +375,20 @@ function exportarCSV() {
 
 // ── DASHBOARD ──
 function renderDashboard() {
+  const dashDate = document.getElementById('dash-date');
+  const dashMesLabel = document.getElementById('dash-mes-label');
+  const deudaEl = document.getElementById('dm-deuda');
+  const gastadoEl = document.getElementById('dm-gastado');
+  const ahorroEl = document.getElementById('dm-ahorro');
+  const tbody = document.getElementById('dash-gastos-body');
+  const catDiv = document.getElementById('cat-summary');
+  if (!dashDate || !dashMesLabel || !deudaEl || !gastadoEl || !ahorroEl || !tbody || !catDiv) return;
+
   const now = new Date();
-  document.getElementById('dash-date').textContent = now.toLocaleDateString('es-CO', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+  dashDate.textContent = now.toLocaleDateString('es-CO', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
 
   const currentMes = now.toISOString().slice(0,7);
-  document.getElementById('dash-mes-label').textContent = mesLabel(currentMes);
+  dashMesLabel.textContent = mesLabel(currentMes);
 
   const gastosMes = state.gastos.filter(g => mesKey(g.fecha) === currentMes);
   const totalMes = gastosMes.reduce((s,g) => s+g.monto, 0);
@@ -285,12 +396,11 @@ function renderDashboard() {
   const totalDeuda = state.deudas.rappi.saldoActual + state.deudas.fin.saldoActual;
   const totalAhorro = state.ahorro.depositos.reduce((s,d) => s+d.monto, 0);
 
-  document.getElementById('dm-deuda').textContent = fmt(totalDeuda);
-  document.getElementById('dm-gastado').textContent = fmt(totalMes);
-  document.getElementById('dm-ahorro').textContent = fmt(totalAhorro);
+  deudaEl.textContent = fmt(totalDeuda);
+  gastadoEl.textContent = fmt(totalMes);
+  ahorroEl.textContent = fmt(totalAhorro);
 
   // Últimos gastos (5)
-  const tbody = document.getElementById('dash-gastos-body');
   const recientes = state.gastos.slice(0, 8);
   if (recientes.length === 0) {
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:20px;">Aún no hay gastos — registrá el primero arriba ↑</td></tr>';
@@ -310,7 +420,6 @@ function renderDashboard() {
   const catTotals = {};
   gastosMes.forEach(g => { catTotals[g.cat] = (catTotals[g.cat]||0) + g.monto; });
   const sorted = Object.entries(catTotals).sort((a,b) => b[1]-a[1]);
-  const catDiv = document.getElementById('cat-summary');
   if (sorted.length === 0) {
     catDiv.innerHTML = '<div style="color:var(--text3);text-align:center;padding:16px;font-size:12px;">Sin gastos este mes todavía</div>';
   } else {
@@ -345,6 +454,8 @@ async function registrarPagoDeuda(tipo) {
 }
 
 function renderDeudas() {
+  if (!document.getElementById('rappi-saldo-display')) return;
+
   const rappi = state.deudas.rappi;
   const fin = state.deudas.fin;
 
@@ -423,6 +534,8 @@ async function deleteGastoKata(id) {
 }
 
 function renderPareja() {
+  if (!document.getElementById('total-pareja-label')) return;
+
   const items = state.pareja.items;
   const total = items.reduce((s,i) => s + (i.valor||0), 0);
   const maicol80 = total * 0.8;
@@ -484,7 +597,10 @@ async function depositarAhorro() {
 }
 
 function renderAhorro() {
-  const meta = parseFloat(document.getElementById('meta-viaje').value) || 1200000;
+  const metaInput = document.getElementById('meta-viaje');
+  if (!metaInput) return;
+
+  const meta = parseFloat(metaInput.value) || 1200000;
   state.ahorro.meta = meta;
   saveState();
 
@@ -520,8 +636,13 @@ function renderAhorro() {
 }
 
 function renderProyeccion() {
-  const meta = parseFloat(document.getElementById('meta-viaje').value) || 1200000;
-  const mensual = parseFloat(document.getElementById('ahorro-mensual-plan').value) || 150000;
+  const metaInput = document.getElementById('meta-viaje');
+  const mensualInput = document.getElementById('ahorro-mensual-plan');
+  const table = document.getElementById('proyeccion-table');
+  if (!metaInput || !mensualInput || !table) return;
+
+  const meta = parseFloat(metaInput.value) || 1200000;
+  const mensual = parseFloat(mensualInput.value) || 150000;
   const totalActual = state.ahorro.depositos.reduce((s,d) => s+d.monto, 0);
   const falta = Math.max(0, meta - totalActual);
   const mesesNecesarios = mensual > 0 ? Math.ceil(falta / mensual) : 99;
@@ -543,7 +664,7 @@ function renderProyeccion() {
     if (ok) break;
   }
 
-  document.getElementById('proyeccion-table').innerHTML = `
+  table.innerHTML = `
     <table class="tbl">
       <thead><tr><th>Mes</th><th>Depósito</th><th>Acumulado</th><th>Estado</th></tr></thead>
       <tbody>${rows}</tbody>
@@ -562,17 +683,21 @@ function closeModal() {
 
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', async () => {
-  document.getElementById('g-fecha').value = todayStr();
+  const gastoFechaInput = document.getElementById('g-fecha');
+  if (gastoFechaInput) gastoFechaInput.value = todayStr();
+  document.getElementById('sync-status')?.addEventListener('click', manualRefresh);
+  setupPullToRefresh();
 
   // Mostrar caché inmediatamente mientras carga Sheets
   loadCache();
-  renderDashboard();
+  refreshUI();
 
   // Luego cargar desde Sheets y re-renderizar
   await loadFromSheets();
-  renderDashboard();
 
   const mesSelect = document.getElementById('filtro-mes');
-  const currentMes = new Date().toISOString().slice(0,7);
-  mesSelect.innerHTML = `<option value="all">Todos los meses</option><option value="${currentMes}" selected>${mesLabel(currentMes)}</option>`;
+  if (mesSelect) {
+    const currentMes = new Date().toISOString().slice(0,7);
+    mesSelect.innerHTML = `<option value="all">Todos los meses</option><option value="${currentMes}" selected>${mesLabel(currentMes)}</option>`;
+  }
 });

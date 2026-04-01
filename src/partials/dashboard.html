@@ -1,0 +1,80 @@
+<div id="page-dashboard" class="page active">
+  <div style="margin-bottom:20px;">
+    <div style="font-family:var(--font-display);font-size:28px;font-weight:300;font-style:italic;margin-bottom:4px;">Hola, Maicol</div>
+    <div style="color:var(--text3);font-size:12px;" id="dash-date"></div>
+  </div>
+
+  <div class="grid4" style="margin-bottom:18px;">
+    <div class="metric">
+      <div class="metric-label">Salario</div>
+      <div class="metric-value green" id="dm-salario">$6.200.000</div>
+      <div class="metric-sub">mensual</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Deuda total</div>
+      <div class="metric-value red" id="dm-deuda">—</div>
+      <div class="metric-sub">Rappi + Finandina</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Gastado este mes</div>
+      <div class="metric-value amber" id="dm-gastado">—</div>
+      <div class="metric-sub">registrado</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Ahorro viaje</div>
+      <div class="metric-value blue" id="dm-ahorro">—</div>
+      <div class="metric-sub">meta: $1.200.000</div>
+    </div>
+  </div>
+
+  <!-- Quick add desde dashboard -->
+  <div class="quick-add">
+    <div style="font-size:11px;color:var(--accent);letter-spacing:.05em;text-transform:uppercase;margin-bottom:12px;">+ Registrar gasto rápido</div>
+    <div class="quick-grid" id="quick-form-dash">
+      <div class="field" style="margin:0"><label>Descripción</label><input type="text" id="qd-desc" placeholder="ej: Rappi, gasolina..."></div>
+      <div class="field" style="margin:0"><label>Monto ($)</label><input type="number" id="qd-monto" placeholder="0"></div>
+      <div class="field" style="margin:0"><label>Categoría</label>
+        <select id="qd-cat">
+          <option value="Mercado">🛒 Mercado</option>
+          <option value="Ingredientes / diario">🥦 Ingredientes / diario</option>
+          <option value="Restaurantes / salidas">🍔 Restaurantes / salidas</option>
+          <option value="Transporte">🚗 Transporte</option>
+          <option value="Entretenimiento">🎮 Entretenimiento</option>
+          <option value="Suscripciones">💻 Suscripciones</option>
+          <option value="Ropa">👕 Ropa</option>
+          <option value="Deporte">⚽ Deporte</option>
+          <option value="Salud">💊 Salud</option>
+          <option value="Hogar">🏠 Hogar</option>
+          <option value="Familia">❤️ Familia</option>
+          <option value="Otros">📦 Otros</option>
+        </select>
+      </div>
+      <div class="field" style="margin:0"><label>Método</label>
+        <select id="qd-metodo">
+          <option value="Rappi">Rappi</option>
+          <option value="Finandina">Finandina</option>
+          <option value="Débito">Débito</option>
+          <option value="Efectivo">Efectivo</option>
+          <option value="Kata">Kata (pareja)</option>
+        </select>
+      </div>
+      <div style="padding-bottom:0"><button class="btn" onclick="quickAdd()">+</button></div>
+    </div>
+  </div>
+
+  <!-- Últimos gastos -->
+  <div class="card">
+    <div class="sh"><h2>Últimos gastos</h2><span id="dash-mes-label"></span></div>
+    <table class="tbl" id="dash-gastos-table">
+      <thead><tr><th>Descripción</th><th>Categoría</th><th>Método</th><th>Monto</th><th></th></tr></thead>
+      <tbody id="dash-gastos-body"></tbody>
+    </table>
+    <div style="margin-top:12px;text-align:center;"><a class="btn-ghost" href="/gastos/">Ver todos los gastos →</a></div>
+  </div>
+
+  <!-- Resumen por categoría -->
+  <div class="card">
+    <div class="sh"><h2>Por categoría</h2><span>este mes</span></div>
+    <div id="cat-summary"></div>
+  </div>
+</div>

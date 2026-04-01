@@ -1,0 +1,87 @@
+---
+import '../styles/global.css';
+import modalHtml from '../partials/modal.html?raw';
+
+interface Props {
+  activePage: 'dashboard' | 'gastos' | 'deudas' | 'pareja' | 'ahorro';
+  bodyHtml: string;
+}
+
+const { activePage, bodyHtml } = Astro.props;
+
+const appConfig = {
+  API_URL:
+    import.meta.env.PUBLIC_API_URL ??
+    'https://script.google.com/macros/s/AKfycbx42K24D_ez7674ufMdXRbgb2lvRanEfXcmZryS3EFHy6Ffz_RELIfrMc2Dws02_ErWVw/exec',
+  CACHE_KEY: import.meta.env.PUBLIC_CACHE_KEY ?? 'finanzas_maicol_cache_v2',
+};
+
+const links = [
+  { id: 'dashboard', href: '/', label: 'Dashboard', mobileLabel: 'inicio', icon: '◈' },
+  { id: 'gastos', href: '/gastos/', label: 'Gastos', mobileLabel: 'gastos', icon: '＋' },
+  { id: 'deudas', href: '/deudas/', label: 'Deudas', mobileLabel: 'deudas', icon: '◎' },
+  { id: 'pareja', href: '/pareja/', label: 'Pareja', mobileLabel: 'pareja', icon: '♡' },
+  { id: 'ahorro', href: '/ahorro/', label: 'Ahorro', mobileLabel: 'ahorro', icon: '✦' },
+] as const;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f0f0f" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Mis Finanzas" />
+    <title>Finanzas — Maicol</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icon-192.svg" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body data-page={activePage}>
+    <nav class="top-nav">
+      <span class="brand">mis finanzas</span>
+      {links.map((link) => (
+        <a href={link.href} class={link.id === activePage ? 'active' : undefined}>{link.label}</a>
+      ))}
+      <span id="sync-status" title="Toca para actualizar">⟳ conectando...</span>
+    </nav>
+
+    <nav class="bottom-nav" id="bottom-nav">
+      {links.map((link) => (
+        <a href={link.href} class={link.id === activePage ? 'active' : undefined}>
+          <span class="nav-icon">{link.icon}</span>{link.mobileLabel}
+        </a>
+      ))}
+    </nav>
+
+    <div id="pull-indicator">Desliza para actualizar</div>
+
+    <div class="app-body">
+      <div class="pages-wrap">
+        <div style="display: contents" set:html={bodyHtml} />
+      </div>
+    </div>
+
+    <div style="display: contents" set:html={modalHtml} />
+
+    <script is:inline define:vars={{ appConfig }}>
+      window.__APP_CONFIG__ = appConfig;
+    </script>
+    <script is:inline>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js?v=2', { updateViaCache: 'none' }).catch((err) => {
+            console.error('[pwa] service worker error', err);
+          });
+        });
+      }
+    </script>
+    <script src="/app.js" defer></script>
+  </body>
+</html>

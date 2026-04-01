@@ -1,0 +1,54 @@
+<div id="page-ahorro" class="page active">
+  <div class="sh" style="margin-bottom:18px;"><h2 style="font-family:var(--font-display);font-size:24px;font-weight:300;font-style:italic;">Ahorro para el viaje</h2></div>
+
+  <div class="card" style="border-color:var(--accent2);">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+      <div>
+        <div style="font-family:var(--font-display);font-size:20px;font-weight:300;font-style:italic;margin-bottom:4px;">Viaje — Noviembre 2026 ✈</div>
+        <div style="font-size:12px;color:var(--text3);">Meta de ahorro</div>
+      </div>
+      <div style="text-align:right;">
+        <input type="number" id="meta-viaje" value="1200000" style="width:150px;text-align:right;font-family:var(--font-display);font-size:20px;font-weight:300;" onchange="renderAhorro()">
+        <div style="font-size:11px;color:var(--text3);margin-top:2px;">meta en $</div>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;">
+      <span style="color:var(--text2)">Ahorrado</span>
+      <span><span id="ahorro-actual-display" style="color:var(--accent)">$0</span> / <span id="ahorro-meta-display" style="color:var(--text2)">$1.200.000</span></span>
+    </div>
+    <div class="savings-track"><div class="savings-fill" id="ahorro-bar" style="width:0%"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:6px;">
+      <span id="ahorro-pct-label">0% alcanzado</span>
+      <span id="ahorro-meses-label">Faltan 7 meses</span>
+    </div>
+
+    <hr class="divider">
+    <div style="display:flex;gap:8px;align-items:center;">
+      <input type="number" id="ahorro-deposito" placeholder="Depositar al ahorro este mes ($)" style="flex:1;">
+      <button class="btn" onclick="depositarAhorro()">Depositar</button>
+    </div>
+  </div>
+
+  <!-- Proyección -->
+  <div class="card">
+    <div class="sh"><h2>Proyección mensual</h2><span>¿cuánto necesito ahorrar?</span></div>
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;">
+      <div style="flex:1;"><label>Ahorro mensual que puedo hacer ($)</label><input type="number" id="ahorro-mensual-plan" value="150000" onchange="renderProyeccion()"></div>
+    </div>
+    <div id="proyeccion-table"></div>
+  </div>
+
+  <!-- Historial -->
+  <div class="card">
+    <div class="sh"><h2>Historial de depósitos</h2></div>
+    <table class="tbl">
+      <thead><tr><th>Fecha</th><th>Descripción</th><th style="text-align:right">Monto</th></tr></thead>
+      <tbody id="ahorro-historial-body"></tbody>
+    </table>
+    <div style="margin-top:10px;text-align:right;font-size:13px;font-weight:500;" id="ahorro-total-label">Total ahorrado: $0</div>
+  </div>
+</div>
+
+</div><!-- /pages-wrap -->
+</div><!-- /app-body -->

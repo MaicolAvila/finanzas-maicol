@@ -22,6 +22,7 @@ function getDefaultState() {
 }
 
 let state = getDefaultState();
+let modalConfirmAction = null;
 
 // ── CACHE (localStorage como respaldo offline) ──
 function saveCache() {
@@ -323,6 +324,69 @@ async function deleteGasto(id) {
   await apiCall({ action: 'deleteGasto', id });
 }
 
+function openEditGasto(id) {
+  const gasto = state.gastos.find((item) => item.id === id);
+  if (!gasto) return;
+
+  openModal({
+    title: 'Editar gasto',
+    bodyHtml: `
+      <div class="modal-form-grid">
+        <div class="field">
+          <label for="edit-gasto-desc">Descripcion</label>
+          <input id="edit-gasto-desc" type="text" value="${escapeHtml(gasto.desc)}">
+        </div>
+        <div class="field">
+          <label for="edit-gasto-monto">Monto ($)</label>
+          <input id="edit-gasto-monto" type="number" value="${gasto.monto}">
+        </div>
+        <div class="field">
+          <label for="edit-gasto-fecha">Fecha</label>
+          <input id="edit-gasto-fecha" type="date" value="${gasto.fecha}">
+        </div>
+        <div class="field">
+          <label for="edit-gasto-cat">Categoria</label>
+          <select id="edit-gasto-cat">${buildOptions([
+            'Mercado','Ingredientes / diario','Restaurantes / salidas','Transporte','Entretenimiento','Suscripciones','Ropa','Deporte','Salud','Hogar','Familia','Otros'
+          ], gasto.cat)}</select>
+        </div>
+        <div class="field">
+          <label for="edit-gasto-metodo">Metodo</label>
+          <select id="edit-gasto-metodo">${buildOptions(['Rappi','Finandina','Débito','Efectivo','Kata'], gasto.metodo)}</select>
+        </div>
+        <div class="field">
+          <label for="edit-gasto-nota">Nota</label>
+          <input id="edit-gasto-nota" type="text" value="${escapeHtml(gasto.nota || '')}">
+        </div>
+      </div>
+    `,
+    confirmText: 'Guardar',
+    onConfirm: async () => {
+      const updated = {
+        ...gasto,
+        desc: document.getElementById('edit-gasto-desc').value.trim(),
+        monto: parseFloat(document.getElementById('edit-gasto-monto').value),
+        fecha: document.getElementById('edit-gasto-fecha').value || gasto.fecha,
+        cat: document.getElementById('edit-gasto-cat').value,
+        metodo: document.getElementById('edit-gasto-metodo').value,
+        nota: document.getElementById('edit-gasto-nota').value.trim()
+      };
+
+      if (!updated.desc || !updated.monto) return;
+
+      state.gastos = state.gastos.map((item) => item.id === id ? updated : item)
+        .sort((a, b) => b.fecha.localeCompare(a.fecha));
+      saveCache();
+      renderGastos();
+      renderDashboard();
+      closeModal();
+
+      await apiCall({ action: 'deleteGasto', id });
+      await apiCall({ action: 'saveGasto', ...updated });
+    }
+  });
+}
+
 function renderGastos() {
   const mesSelect = document.getElementById('filtro-mes');
   const catSelect = document.getElementById('filtro-cat');
@@ -355,7 +419,10 @@ function renderGastos() {
         <td data-label="Método" class="hide-mobile"><span class="badge ${g.metodo==='Rappi'?'badge-red':g.metodo==='Finandina'?'badge-amber':g.metodo==='Débito'?'badge-blue':'badge-green'}">${g.metodo}</span></td>
         <td data-label="Nota" class="hide-mobile" style="color:var(--text3)">${g.nota||'—'}</td>
         <td data-label="Monto" style="text-align:right;font-weight:500">${fmt(g.monto)}</td>
-        <td data-label="Acción"><button class="btn-danger" onclick="deleteGasto(${g.id})">✕</button></td>
+        <td data-label="Acción" class="action-cell">
+          <button class="btn-ghost btn-inline" onclick="openEditGasto(${g.id})">Editar</button>
+          <button class="btn-danger" onclick="deleteGasto(${g.id})">✕</button>
+        </td>
       </tr>
     `).join('');
   }
@@ -411,7 +478,10 @@ function renderDashboard() {
         <td data-label="Categoría"><span class="cat-dot" style="background:${catColors[g.cat]||'#666'}"></span>${g.cat}</td>
         <td data-label="Método"><span class="badge ${g.metodo==='Rappi'?'badge-red':g.metodo==='Finandina'?'badge-amber':g.metodo==='Débito'?'badge-blue':'badge-green'}">${g.metodo}</span></td>
         <td data-label="Monto" style="text-align:right;font-weight:500">${fmt(g.monto)}</td>
-        <td data-label="Acción"><button class="btn-danger" onclick="deleteGasto(${g.id})">✕</button></td>
+        <td data-label="Acción" class="action-cell">
+          <button class="btn-ghost btn-inline" onclick="openEditGasto(${g.id})">Editar</button>
+          <button class="btn-danger" onclick="deleteGasto(${g.id})">✕</button>
+        </td>
       </tr>
     `).join('');
   }
@@ -516,6 +586,43 @@ async function deleteGastoPareja(id) {
   await apiCall({ action: 'savePareja', items: state.pareja.items });
 }
 
+function openEditPareja(id) {
+  const item = state.pareja.items.find((entry) => entry.id === id);
+  if (!item) return;
+
+  openModal({
+    title: 'Editar gasto compartido',
+    bodyHtml: `
+      <div class="modal-form-grid modal-form-grid-single">
+        <div class="field">
+          <label for="edit-pareja-nombre">Gasto</label>
+          <input id="edit-pareja-nombre" type="text" value="${escapeHtml(item.nombre)}">
+        </div>
+        <div class="field">
+          <label for="edit-pareja-valor">Valor total ($)</label>
+          <input id="edit-pareja-valor" type="number" value="${item.valor}">
+        </div>
+      </div>
+    `,
+    confirmText: 'Guardar',
+    onConfirm: async () => {
+      const updated = {
+        ...item,
+        nombre: document.getElementById('edit-pareja-nombre').value.trim(),
+        valor: parseFloat(document.getElementById('edit-pareja-valor').value)
+      };
+
+      if (!updated.nombre || !updated.valor) return;
+
+      state.pareja.items = state.pareja.items.map((entry) => entry.id === id ? updated : entry);
+      saveCache();
+      renderPareja();
+      closeModal();
+      await apiCall({ action: 'savePareja', items: state.pareja.items });
+    }
+  });
+}
+
 async function addGastoKata() {
   const nombre = document.getElementById('k-gasto').value.trim();
   const valor  = parseFloat(document.getElementById('k-valor').value);
@@ -552,7 +659,10 @@ function renderPareja() {
       <td data-label="Total">${fmt(i.valor)}</td>
       <td data-label="Maicol" style="color:var(--warn)">${fmt(i.valor*0.8)}</td>
       <td data-label="Kata" style="color:var(--accent2)">${fmt(i.valor*0.2)}</td>
-      <td data-label="Acción"><button class="btn-danger" onclick="deleteGastoPareja(${i.id})">✕</button></td>
+      <td data-label="Acción" class="action-cell">
+        <button class="btn-ghost btn-inline" onclick="openEditPareja(${i.id})">Editar</button>
+        <button class="btn-danger" onclick="deleteGastoPareja(${i.id})">✕</button>
+      </td>
     </tr>
   `).join('') + `
     <tr style="font-weight:500;border-top:1px solid var(--border2);">
@@ -677,8 +787,32 @@ function renderProyeccion() {
 }
 
 // ── MODAL ──
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
+}
+
+function buildOptions(options, selected) {
+  return options.map((option) => `
+    <option value="${option}" ${option === selected ? 'selected' : ''}>${option}</option>
+  `).join('');
+}
+
+function openModal({ title, bodyHtml, confirmText = 'Confirmar', onConfirm }) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').innerHTML = bodyHtml;
+  document.getElementById('modal-confirm-btn').textContent = confirmText;
+  document.getElementById('modal-overlay').classList.add('open');
+  modalConfirmAction = onConfirm;
+}
+
 function closeModal() {
   document.getElementById('modal-overlay').classList.remove('open');
+  document.getElementById('modal-body').innerHTML = '';
+  modalConfirmAction = null;
 }
 
 // ── INIT ──
@@ -700,4 +834,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const currentMes = new Date().toISOString().slice(0,7);
     mesSelect.innerHTML = `<option value="all">Todos los meses</option><option value="${currentMes}" selected>${mesLabel(currentMes)}</option>`;
   }
+
+  document.getElementById('modal-confirm-btn')?.addEventListener('click', async () => {
+    if (typeof modalConfirmAction === 'function') {
+      await modalConfirmAction();
+    }
+  });
+
+  document.getElementById('modal-overlay')?.addEventListener('click', (event) => {
+    if (event.target.id === 'modal-overlay') closeModal();
+  });
 });

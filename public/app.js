@@ -349,13 +349,13 @@ function renderGastos() {
   } else {
     tbody.innerHTML = filtered.map(g => `
       <tr>
-        <td style="color:var(--text3)">${fmtDate(g.fecha)}</td>
-        <td>${g.desc}</td>
-        <td><span class="cat-dot" style="background:${catColors[g.cat]||'#666'}"></span>${g.cat}</td>
-        <td class="hide-mobile"><span class="badge ${g.metodo==='Rappi'?'badge-red':g.metodo==='Finandina'?'badge-amber':g.metodo==='Débito'?'badge-blue':'badge-green'}">${g.metodo}</span></td>
-        <td class="hide-mobile" style="color:var(--text3)">${g.nota||'—'}</td>
-        <td style="text-align:right;font-weight:500">${fmt(g.monto)}</td>
-        <td><button class="btn-danger" onclick="deleteGasto(${g.id})">✕</button></td>
+        <td data-label="Fecha" style="color:var(--text3)">${fmtDate(g.fecha)}</td>
+        <td data-label="Descripción">${g.desc}</td>
+        <td data-label="Categoría"><span class="cat-dot" style="background:${catColors[g.cat]||'#666'}"></span>${g.cat}</td>
+        <td data-label="Método" class="hide-mobile"><span class="badge ${g.metodo==='Rappi'?'badge-red':g.metodo==='Finandina'?'badge-amber':g.metodo==='Débito'?'badge-blue':'badge-green'}">${g.metodo}</span></td>
+        <td data-label="Nota" class="hide-mobile" style="color:var(--text3)">${g.nota||'—'}</td>
+        <td data-label="Monto" style="text-align:right;font-weight:500">${fmt(g.monto)}</td>
+        <td data-label="Acción"><button class="btn-danger" onclick="deleteGasto(${g.id})">✕</button></td>
       </tr>
     `).join('');
   }
@@ -407,11 +407,11 @@ function renderDashboard() {
   } else {
     tbody.innerHTML = recientes.map(g => `
       <tr>
-        <td>${g.desc}</td>
-        <td><span class="cat-dot" style="background:${catColors[g.cat]||'#666'}"></span>${g.cat}</td>
-        <td><span class="badge ${g.metodo==='Rappi'?'badge-red':g.metodo==='Finandina'?'badge-amber':g.metodo==='Débito'?'badge-blue':'badge-green'}">${g.metodo}</span></td>
-        <td style="text-align:right;font-weight:500">${fmt(g.monto)}</td>
-        <td><button class="btn-danger" onclick="deleteGasto(${g.id})">✕</button></td>
+        <td data-label="Descripción">${g.desc}</td>
+        <td data-label="Categoría"><span class="cat-dot" style="background:${catColors[g.cat]||'#666'}"></span>${g.cat}</td>
+        <td data-label="Método"><span class="badge ${g.metodo==='Rappi'?'badge-red':g.metodo==='Finandina'?'badge-amber':g.metodo==='Débito'?'badge-blue':'badge-green'}">${g.metodo}</span></td>
+        <td data-label="Monto" style="text-align:right;font-weight:500">${fmt(g.monto)}</td>
+        <td data-label="Acción"><button class="btn-danger" onclick="deleteGasto(${g.id})">✕</button></td>
       </tr>
     `).join('');
   }
@@ -548,19 +548,19 @@ function renderPareja() {
   const tbody = document.getElementById('pareja-tbody');
   tbody.innerHTML = items.map(i => `
     <tr>
-      <td>${i.nombre}</td>
-      <td>${fmt(i.valor)}</td>
-      <td style="color:var(--warn)">${fmt(i.valor*0.8)}</td>
-      <td style="color:var(--accent2)">${fmt(i.valor*0.2)}</td>
-      <td><button class="btn-danger" onclick="deleteGastoPareja(${i.id})">✕</button></td>
+      <td data-label="Gasto">${i.nombre}</td>
+      <td data-label="Total">${fmt(i.valor)}</td>
+      <td data-label="Maicol" style="color:var(--warn)">${fmt(i.valor*0.8)}</td>
+      <td data-label="Kata" style="color:var(--accent2)">${fmt(i.valor*0.2)}</td>
+      <td data-label="Acción"><button class="btn-danger" onclick="deleteGastoPareja(${i.id})">✕</button></td>
     </tr>
   `).join('') + `
     <tr style="font-weight:500;border-top:1px solid var(--border2);">
-      <td>Total</td>
-      <td>${fmt(total)}</td>
-      <td style="color:var(--warn)">${fmt(maicol80)}</td>
-      <td style="color:var(--accent2)">${fmt(kata20)}</td>
-      <td></td>
+      <td data-label="Gasto">Total</td>
+      <td data-label="Total">${fmt(total)}</td>
+      <td data-label="Maicol" style="color:var(--warn)">${fmt(maicol80)}</td>
+      <td data-label="Kata" style="color:var(--accent2)">${fmt(kata20)}</td>
+      <td data-label="Acción"></td>
     </tr>
   `;
 
@@ -573,9 +573,9 @@ function renderPareja() {
     ...kataItems
   ].map(i => `
     <tr>
-      <td>${i.nombre}</td>
-      <td>${fmt(i.valor)}</td>
-      <td>${i.id==='auto'?'<span class="tag">auto</span>':`<button class="btn-danger" onclick="deleteGastoKata(${i.id})">✕</button>`}</td>
+      <td data-label="Gasto">${i.nombre}</td>
+      <td data-label="Monto">${fmt(i.valor)}</td>
+      <td data-label="Acción">${i.id==='auto'?'<span class="tag">auto</span>':`<button class="btn-danger" onclick="deleteGastoKata(${i.id})">✕</button>`}</td>
     </tr>
   `).join('');
 
@@ -626,9 +626,9 @@ function renderAhorro() {
   } else {
     tbody.innerHTML = state.ahorro.depositos.map(d => `
       <tr>
-        <td style="color:var(--text3)">${fmtDate(d.fecha)}</td>
-        <td>${d.desc}</td>
-        <td style="text-align:right;color:var(--accent);font-weight:500">${fmt(d.monto)}</td>
+        <td data-label="Fecha" style="color:var(--text3)">${fmtDate(d.fecha)}</td>
+        <td data-label="Descripción">${d.desc}</td>
+        <td data-label="Monto" style="text-align:right;color:var(--accent);font-weight:500">${fmt(d.monto)}</td>
       </tr>
     `).join('');
   }
@@ -656,16 +656,16 @@ function renderProyeccion() {
     acum += mensual;
     const ok = acum >= meta;
     rows += `<tr>
-      <td>${meses[d.getMonth()]} ${d.getFullYear()}</td>
-      <td>${fmt(mensual)}</td>
-      <td style="font-weight:500;color:${ok?'var(--accent)':'var(--text2)'}">${fmt(Math.min(acum, meta))}</td>
-      <td>${ok ? '<span class="badge badge-green">✓ Meta</span>' : fmt(meta - acum) + ' falta'}</td>
+      <td data-label="Mes">${meses[d.getMonth()]} ${d.getFullYear()}</td>
+      <td data-label="Depósito">${fmt(mensual)}</td>
+      <td data-label="Acumulado" style="font-weight:500;color:${ok?'var(--accent)':'var(--text2)'}">${fmt(Math.min(acum, meta))}</td>
+      <td data-label="Estado">${ok ? '<span class="badge badge-green">✓ Meta</span>' : fmt(meta - acum) + ' falta'}</td>
     </tr>`;
     if (ok) break;
   }
 
   table.innerHTML = `
-    <table class="tbl">
+    <table class="tbl tbl-mobile-cards">
       <thead><tr><th>Mes</th><th>Depósito</th><th>Acumulado</th><th>Estado</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
